@@ -1,18 +1,26 @@
 from aiogram import Bot, executor, Dispatcher, types
+from aiogram.types import ReplyKeyboardMarkup
 import pandas as pd
 import os
 from dotenv import load_dotenv
 
-
 HELP_COMMAND = """
 <b>/help</b> - <em>список команд</em>
 <b>/start</b> - <em>начало работы с ботом</em>
-<b>/give</b> - <em>кидает собаку</em>"""
+<b>/description</b> - <em>описание бота</em>"""
 
 load_dotenv()
 bot = Bot(os.getenv('TOKEN'))
 dp = Dispatcher(bot)
-count = 0
+
+main = ReplyKeyboardMarkup(resize_keyboard=True)
+main.add('Каталог').add('Корзина').add('Контакты')
+
+main_admin = ReplyKeyboardMarkup(resize_keyboard=True)
+main_admin.add('Каталог').add('Корзина').add('Контакты').add('Админ-панель')
+
+admin_panel = ReplyKeyboardMarkup(resize_keyboard=True)
+admin_panel.add('Добавить товар').add('Удалить товар').add('Сделать рассылку').add('Назад')
 
 
 async def on_startup(_):
@@ -26,36 +34,40 @@ async def help_reply(message: types.Message):
 
 @dp.message_handler(commands=['start'])
 async def start_reply(message: types.Message):
-    await message.answer(text='<em>Добро пожаловать в <b>наш</b> магазин</em>', parse_mode='HTML')
-    await message.delete()
+    if message.from_user.id == int(os.getenv('ADMIN_ID')):
+        await message.answer(text='Вы авторизовались как администратор', reply_markup=main_admin)
+        await message.delete()
+    else:
+        await message.answer(text='<em>Добро пожаловать в <b>наш</b> магазин</em>', parse_mode='HTML',
+                             reply_markup=main)
+        await message.delete()
+
+
+@dp.message_handler(text='Админ-панель')
+async def start_reply(message: types.Message):
+    await bot.send_message(message.from_user.id, text='Добро пожаловать в админ-панель, она предназначена для '
+                                                      'управления товаром', reply_markup=admin_panel)
+
+
+@dp.message_handler(text='Каталог')
+async def start_reply(message: types.Message):
+    await bot.send_message(message.from_user.id, text='Каталог пуст')
+
+
+@dp.message_handler(text='Корзина')
+async def start_reply(message: types.Message):
+    await bot.send_message(message.from_user.id, text='Корзина пуста')
+
+
+@dp.message_handler(text='Контакты')
+async def start_reply(message: types.Message):
+    await bot.send_message(message.from_user.id, text='Контакты пусты')
 
 
 @dp.message_handler(commands=['description'])
 async def description_reply(message: types.Message):
     await message.answer(text='Здесь вы можете заказать футболку')
     await message.delete()
-
-
-@dp.message_handler(commands=['count'])
-async def count_reply(message: types.Message):
-    global count
-    await message.answer(text=f'Количество предыдущих вызовов: {count}')
-    await message.delete()
-    count += 1
-
-
-@dp.message_handler(commands=['give'])
-async def give_reply(message: types.Message):
-    await message.answer(text='Смотри какой пэс крутой на тебя похож')
-    await bot.send_sticker(message.from_user.id,
-                           sticker='CAACAgIAAxkBAAEKNLlk84nhkBCmGe1YssiusPG5juyBVAACWQsAAoBjYUt4gLNAOvgwTzAE')
-
-
-@dp.message_handler(commands=['image'])
-async def image_reply(message: types.Message):
-    await bot.send_photo(chat_id=message.from_user.id,
-                         photo='https://avatars.mds.yandex.net/i?id=2a0000018a574be0b8164509ae43c24fdf64-1075067-fast'
-                               '-images&n=13')
 
 
 @dp.message_handler(commands=['location'])
