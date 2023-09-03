@@ -1,15 +1,16 @@
 from aiogram import Bot, executor, Dispatcher, types
-from config import TOKEN_API
 import pandas as pd
-import random
-import string
+import os
+from dotenv import load_dotenv
+
 
 HELP_COMMAND = """
 <b>/help</b> - <em>список команд</em>
 <b>/start</b> - <em>начало работы с ботом</em>
 <b>/give</b> - <em>кидает собаку</em>"""
 
-bot = Bot(TOKEN_API)
+load_dotenv()
+bot = Bot(os.getenv('TOKEN'))
 dp = Dispatcher(bot)
 count = 0
 
